@@ -1,15 +1,16 @@
 # TikTok Chest Bot
 
-TikTok LIVE səhifələrini yoxlayır və sandıqla bağlı görünən mətn aşkarlandıqda Telegram qrupuna bildiriş göndərir.
+Kəşf edilən TikTok LIVE otaqlarına qoşulub real EnvelopeEvent hadisələrini Telegram qrupuna göndərir. Səhifədəki təsadüfi chest/treasure sözləri bildiriş yaratmır.
 
-## Render
-Dockerfile Chromium və sistem asılılıqlarını build zamanı quraşdırır.
-Render Environment bölməsində BOT_TOKEN və CHAT_ID saxlanılır; məxfi dəyərləri GitHub-a yazmayın.
-SCAN_INTERVAL yoxlamalar arasındakı fasilədir (standart: 60 saniyə).
-/health botun vəziyyətini göstərir; token və qrup ID-si göstərilmir.
+## Render dəyişənləri
+- BOT_TOKEN və CHAT_ID: məxfi dəyərlər yalnız Render Environment bölməsində saxlanılır.
+- MAX_ROOMS: eyni anda qoşulma sayı, standart 3 (maksimum 8).
+- MONITOR_SECONDS: hər otaq üçün izləmə müddəti, standart 180 saniyə.
+- TIKTOK_USERNAMES: əlavə izlənəcək istifadəçi adları, vergüllə ayrılır.
+- /health: kəşf, qoşulmuş otaq və bildiriş sayları; məxfi dəyərləri göstərmir.
 
-Pulsuz Render xidməti 15 dəqiqə daxil olan trafik olmadıqda dayanır. Fasiləsiz iş üçün ödənişli xidmət lazımdır.
-TikTok giriş və ya CAPTCHA tələb edərsə bot bunu keçmir.
-Sandıq aşkarlanması görünən mətndə açar sözlərə əsaslanır; dəqiq TikTok sandıq API-si deyil.
-Eyni istifadəçi üçün bildiriş 6 saat ərzində prosesin yaddaşında təkrarlanmır; restart bunu sıfırlayır.
-Əvvəl açıq repoda paylaşılmış tokeni BotFather vasitəsilə yeniləyin.
+## Əhatə məhdudiyyəti
+Bu bot bütün TikTok yayımlarını görə bilmir. TikTok LIVE kəşf səhifəsində görünən otaqları növbə ilə izləyir. Kəşfdən kənar yayımlar və botun qoşulmadığı vaxt yaranan hadisələr buraxıla bilər.
+TikTokLive qeyri-rəsmi kitabxanadır və üçüncü tərəf imzalama serverindən istifadə edir; bağlantı və sorğu limitləri mövcuddur. Giriş/CAPTCHA maneələrini keçmir.
+Pulsuz Render xidməti 15 dəqiqə daxil olan trafik olmadıqda dayanır. 24/7 iş üçün ödənişli xidmət tələb olunur.
+Təkrar bildirişin qarşısı sandıq ID-si üzrə prosesin yaddaşında alınır; restart yaddaşı sıfırlayır.
