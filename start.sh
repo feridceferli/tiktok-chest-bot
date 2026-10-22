@@ -1,3 +1,3 @@
-#!/bin/bash
-playwright install
-python main.py
+#!/bin/sh
+set -eu
+exec python main.py
