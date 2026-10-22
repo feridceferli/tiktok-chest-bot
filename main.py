@@ -10,7 +10,6 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import telebot
-from playwright.async_api import async_playwright
 from TikTokLive import TikTokLiveClient
 from TikTokLive.events import ConnectEvent, DisconnectEvent, EnvelopeEvent
 
@@ -95,63 +94,31 @@ def add_candidates(usernames):
             candidates.append(username)
 
 
+def public_live_names():
+    # Read only the public discovery page; never bypass login or challenges.
+    import urllib.request
+    request = urllib.request.Request("https://www.tiktok.com/live",
+        headers={"User-Agent": "TikTokChestBot/1.0"})
+    with urllib.request.urlopen(request, timeout=25) as response:
+        html = response.read(3000000).decode("utf-8", errors="replace")
+    return sorted(set(re.findall(r"/@([A-Za-z0-9_.]+)/live", html)))
+
+
 async def discover():
     add_candidates(os.getenv("TIKTOK_USERNAMES", "").replace("\n", ",").split(","))
     while not stop.is_set():
         try:
-            async with async_playwright() as playwright:
-                browser = await playwright.chromium.launch(
-                    headless=True, args=["--disable-dev-shm-usage"])
-                try:
-                    page = await browser.new_page(viewport={"width": 1365, "height": 768}, locale="en-US")
-                    async def block_media(route):
-                        if route.request.resource_type in ("image", "media", "font"):
-                            await route.abort()
-                        else:
-                            await route.continue_()
-                    await page.route("**/*", block_media)
-                    while not stop.is_set():
-                        response = await page.goto("https://www.tiktok.com/live",
-                            timeout=45000, wait_until="domcontentloaded")
-                        if response and response.status >= 400:
-                            update_status(discovery="http_error",
-                                          last_error=f"discovery_http_{response.status}")
-                            await pause(120)
-                            continue
-                        await page.wait_for_timeout(5000)
-                        names = set()
-                        for _ in range(8):
-                            hrefs = await page.locator("a[href*='/@']").evaluate_all(
-                                "(nodes) => nodes.map(node => node.getAttribute('href'))")
-                            for href in hrefs:
-                                match = re.search(r"/@([A-Za-z0-9_.]+)/live", href or "")
-                                if match:
-                                    names.add(match.group(1))
-                            if stop.is_set():
-                                break
-                            await page.mouse.wheel(0, 2500)
-                            await page.wait_for_timeout(1000)
-                        if not names:
-                            body = (await page.locator("body").inner_text())[:6000].lower()
-                            limited = any(text in body for text in
-                                ("captcha", "verify to continue", "log in to watch", "access denied"))
-                            if limited:
-                                update_status(last_error="tiktok_access_required")
-                            log.info("No rooms discovered; page title: %s; access prompt: %s",
-                                     (await page.title())[:120], limited)
-                        add_candidates(sorted(names))
-                        update_status(last_scan=int(time.time()), live_count=len(names),
-                            discovery="ready" if names else "no_lives_found",
-                            scanner="monitoring" if connected else "waiting_for_rooms")
-                        log.info("Discovery completed: %d live rooms, %d queued",
-                                 len(names), len(candidates))
-                        await pause(120)
-                finally:
-                    await browser.close()
+            names = await asyncio.to_thread(public_live_names)
+            add_candidates(names)
+            update_status(last_scan=int(time.time()), live_count=len(names),
+                discovery="ready" if names else "no_lives_found",
+                scanner="monitoring" if connected else "waiting_for_rooms")
+            log.info("Public discovery completed: %d live rooms; %d queued",
+                     len(names), len(candidates))
         except Exception as exc:
             update_status(discovery="error", last_error="discovery_"+type(exc).__name__)
-            log.error("Live discovery failed: %s", type(exc).__name__)
-            await pause(60)
+            log.warning("Public discovery failed: %s", type(exc).__name__)
+        await pause(120)
 
 
 def envelope_details(event):

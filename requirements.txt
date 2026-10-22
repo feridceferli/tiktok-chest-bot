@@ -1,3 +1,2 @@
-playwright
 pyTelegramBotAPI
 TikTokLive==7.0.1
