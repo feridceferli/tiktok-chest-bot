@@ -1,10 +1,11 @@
+import os
 import time
 from playwright.sync_api import sync_playwright
 import telebot
 
 # === CẤU HÌNH TELEGRAM ===
-BOT_TOKEN = '8897808308:AAH1yrLVgMrZMmw96mKj5XdsbfsK8H5Zu7s'
-CHAT_ID = '-5562035345'  # VD: 123456789
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+CHAT_ID = os.environ["CHAT_ID"]
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # === GỬI THÔNG BÁO VỀ TELEGRAM ===
