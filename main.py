@@ -3,8 +3,8 @@ from playwright.sync_api import sync_playwright
 import telebot
 
 # === CẤU HÌNH TELEGRAM ===
-BOT_TOKEN = '8020465328:AAHLYP3wDab4hoo1PjnawxPM5I_BXQ2mOGI'
-CHAT_ID = '-4948534546'  # VD: 123456789
+BOT_TOKEN = '8897808308:AAH1yrLVgMrZMmw96mKj5XdsbfsK8H5Zu7s'
+CHAT_ID = '-5562035345'  # VD: 123456789
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # === GỬI THÔNG BÁO VỀ TELEGRAM ===
